@@ -3,7 +3,10 @@ function createSvgElement(tagName) {
 }
 
 class Style {
+    borderWidth = 2;
+    fillOpacity = 0.2;
     lineColor = '#545961';
+    linkWidth = 2;
 }
 
 /**
@@ -19,7 +22,7 @@ class SVGRenderer {
         this.top = top;
         this.width = width;
         this.height = height;
-        this.styleObj = style;
+        this.style = style;
 
         this.elements = [];
     }
@@ -40,10 +43,10 @@ class SVGRenderer {
         const defsElement = createSvgElement('defs');
         defsElement.innerHTML = `
             <marker id="startarrow" markerWidth="10" markerHeight="7" refX ="10" refY ="3.5" orient="auto">
-                <polygon points="10 0, 10 7, 0 3.5" fill="${this.styleObj.lineColor}" />
+                <polygon points="10 0, 10 7, 0 3.5" fill="${this.style.lineColor}" />
             </marker>
             <marker id="endarrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto" markerUnits="strokeWidth">
-                <polygon points="0 0, 10 3.5, 0 7" fill="${this.styleObj.lineColor}" />
+                <polygon points="0 0, 10 3.5, 0 7" fill="${this.style.lineColor}" />
             </marker>
         `;
         svgElement.append(defsElement);
@@ -62,10 +65,21 @@ class Shape {
         this.y = 0;
         this.width = 10;
         this.height = 10;
+        this.bgColor = '#f5f3ed';
     }
 
-    // Abstract.
-    addTo(renderer) { }
+    addTo(renderer) {
+        const elem = this.getElement();
+        elem.setAttribute('stroke', renderer.style.lineColor);
+        elem.setAttribute('stroke-width', renderer.style.borderWidth);
+        elem.setAttribute('fill', this.bgColor);
+        elem.setAttribute('fill-opacity', renderer.style.fillOpacity);
+        renderer.addElement(elem, this.Z_VALUE);
+    }
+
+    getElement() {
+        throw new Error('not implemented');
+    }
 }
 
 class Link {
@@ -79,7 +93,10 @@ class Link {
     Z_VALUE = 99;
 
     addTo(/* SVGRenderer */renderer) {
-        renderer.addElement(this.getElement(), this.Z_VALUE);
+        const elem = this.getElement();
+        elem.setAttribute('stroke', renderer.style.lineColor);
+        elem.setAttribute('stroke-width', renderer.style.linkWidth);
+        renderer.addElement(elem, this.Z_VALUE);
     }
 
     getElement() {
@@ -88,20 +105,24 @@ class Link {
         elem.setAttribute('y1', this.fromY);
         elem.setAttribute('x2', this.toX);
         elem.setAttribute('y2', this.toY);
-        elem.setAttribute('stroke', '#000');
-        elem.setAttribute('stroke-width', 2);
         elem.setAttribute('marker-end', 'url(#endarrow)');
         return elem;
     }
 }
 
 class Rect extends Shape {
-    addTo(renderer) {
-        const elem = createSvgElement('rect');
-        elem.setAttribute('x', 120);
-        elem.setAttribute('width', 100);
-        elem.setAttribute('height', 100);
+    constructor() {
+        super();
+    }
 
-        renderer.addElement(elem);
+    getElement() {
+        const elem = createSvgElement('rect');
+        elem.setAttribute('x', this.x);
+        elem.setAttribute('y', this.y);
+        elem.setAttribute('width', this.width);
+        elem.setAttribute('height', this.height);
+        elem.setAttribute('rx', 5);
+        elem.setAttribute('ry', 5);
+        return elem;
     }
 }
