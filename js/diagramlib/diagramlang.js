@@ -24,6 +24,7 @@ class DiagramLangInterpreter {
       'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
+      '->': this.smartConnect.bind(this),
     }
   }
 
@@ -58,6 +59,10 @@ class DiagramLangInterpreter {
 
   _removeShape(name) {
     delete this.shapeMap[name];
+  }
+
+  _addLink(link) {
+    this.links.push(link);
   }
 
   /**
@@ -119,6 +124,22 @@ class DiagramLangInterpreter {
     shape.y = parseInt(cmdArray[2]);
     shape.width = parseInt(cmdArray[3]);
     shape.height = parseInt(cmdArray[4]);
+  }
+
+  /**
+   * Creates a smart single curved link between shapes.
+   *
+   * Syntax:
+   *   stack <from shape> <direction (up/down/left/right)> <to shape> <direction>
+   */
+  smartConnect(cmdArray) {
+    const fromShape = this._getShape(cmdArray[0]);
+    const fromDirection = cmdArray[1];
+    const toShape = this._getShape(cmdArray[2]);
+    const toDirection = cmdArray[3];
+    const link = new LinkSmartSingleCurved();
+    link.setParamsFromShapes(fromShape, fromDirection, toShape, toDirection);
+    this._addLink(link);
   }
 
   /**

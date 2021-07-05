@@ -9,7 +9,8 @@ function main() {
     'rect C hello world',
     'rect D foo bar',
     'tile Y 3 C D with tiled!',
-    'move Y 30 450 $bigsize',
+    'move Y 130 450 $bigsize',
+    '-> X down Y up',
   ];
 
   const renderer = new SVGRenderer(document.querySelector('#canvas'));
