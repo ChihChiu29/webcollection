@@ -308,8 +308,8 @@ class TileContainer extends Shape {
         }
 
         const numOfRows = Math.ceil(this.shapes.length / this.numOfShapesPerRow);
-        const shapeWidth = (this.width - (this.numOfShapesPerRow + 1) * this.gapX) / this.numOfShapesPerRow;
-        const shapeHeight = (this.height - (numOfRows + 1) * this.gapY) / numOfRows;
+        const shapeWidth = (this.width - (this.numOfShapesPerRow - 1) * this.gapX) / this.numOfShapesPerRow;
+        const shapeHeight = (this.height - (numOfRows - 1) * this.gapY) / numOfRows;
 
         const elements = [];
         for (const idx in this.shapes) {
@@ -317,8 +317,8 @@ class TileContainer extends Shape {
 
             const colIdx = idx % this.numOfShapesPerRow;
             const rowIdx = Math.floor(idx / this.numOfShapesPerRow);
-            shape.x = this.x + this.gapX + (this.gapX + shapeWidth) * colIdx;
-            shape.y = this.y + this.gapY + (this.gapY + shapeHeight) * rowIdx;
+            shape.x = this.x + (this.gapX + shapeWidth) * colIdx;
+            shape.y = this.y + (this.gapY + shapeHeight) * rowIdx;
             shape.width = shapeWidth;
             shape.height = shapeHeight;
             elements.push(...shape.getElements(style));
@@ -336,9 +336,9 @@ class TitledContainer extends Shape {
         super();
 
         this.title = '';  // Title text.
-        this.childGapX = 5;  // Child gap in x, affects both left and right of the child.
+        this.childGapX = 10;  // Child gap in x, affects both left and right of the child.
         this.childGapY = 5;  // Child gap in x, affects both top and bottom of the child.
-        this.childShiftY = 20; // Child shift in y, affects only top. `style.textFontSize + 10` is a good choice.
+        this.childShiftY = 20; // Child shift in y (to avoid title text), affects only top. `style.textFontSize + 10` is a good choice.
         this.childShape = undefined;  // Child shape. Will be resized when rendering.
     }
 
