@@ -20,6 +20,7 @@ class DiagramLangInterpreter {
     this.handlerMap = {
       'move': this.move.bind(this),
       'rect': this.createRect.bind(this),
+      'stack': this.stackShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
     }
@@ -52,6 +53,10 @@ class DiagramLangInterpreter {
       throw new Error(`shape with name ${name} already exists`);
     }
     this.shapeMap[name] = shape;
+  }
+
+  _removeShape(name) {
+    delete this.shapeMap[name];
   }
 
   /**
@@ -102,11 +107,11 @@ class DiagramLangInterpreter {
   }
 
   /**
-     * Moves and resizes a shape.
-     *
-     * Syntax:
-     *   move <name> left top width height
-     */
+   * Moves and resizes a shape.
+   *
+   * Syntax:
+   *   move <name> left top width height
+   */
   move(cmdArray) {
     const shape = this._getShape(cmdArray[0]);
     shape.x = parseInt(cmdArray[1]);
@@ -116,16 +121,45 @@ class DiagramLangInterpreter {
   }
 
   /**
-     * Changes viewport size.
-     *
-     * Syntax:
-     *   viewport left top width height
-     */
+   * Stacks shapes to a new shape.
+   *
+   * Syntax:
+   *   stack <name of the stack shape> <list of shapes to stack> with <title text>
+   */
+  stackShapes(cmdArray) {
+    const name = cmdArray[0];
+    cmdArray = cmdArray.splice(1);
+    const withKeywordIndex = cmdArray.indexOf('with');
+    if (withKeywordIndex < 0) {
+      throw new Error('stack shapes "with" keyword not found');
+    }
+    const shapeNames = cmdArray.slice(0, withKeywordIndex);
+    const title = cmdArray.slice(withKeywordIndex + 1).join(' ');
+
+    const shapes = [];
+    for (const shapeName of shapeNames) {
+      shapes.push(this._getShape(shapeName));
+      this._removeShape(shapeName);
+    }
+    const titledContainer = new TitledContainer();
+    const stackContainer = new StackContainer();
+    stackContainer.shapes = shapes;
+    titledContainer.title = title;
+    titledContainer.childShape = stackContainer;
+
+    this._setShape(name, titledContainer);
+  }
+
+  /**
+   * Changes viewport size.
+   *
+   * Syntax:
+   *   viewport left top width height
+   */
   viewport(cmdArray) {
     this.renderer.left = parseInt(cmdArray[0]);
     this.renderer.top = parseInt(cmdArray[1]);
     this.renderer.width = parseInt(cmdArray[2]);
     this.renderer.height = parseInt(cmdArray[3]);
-
   }
 }

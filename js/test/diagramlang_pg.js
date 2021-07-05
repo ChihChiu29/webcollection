@@ -4,6 +4,9 @@ function main() {
     'var sizeA 200 50',
     'rect A hello world',
     'move A 10 10 $sizeA',
+    'rect B foo bar',
+    'stack X A B with stacked!',
+    'move X 30 30 300 120',
   ];
 
   const renderer = new SVGRenderer(document.querySelector('#canvas'));
