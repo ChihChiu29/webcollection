@@ -18,13 +18,15 @@ class DiagramLangInterpreter {
     this.nextZValue = 0;
 
     this.handlerMap = {
+      'bgcolor': this.setBgColor.bind(this),
       'move': this.move.bind(this),
       'rect': this.createRect.bind(this),
       'stack': this.stackShapes.bind(this),
       'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
-      '->': this.smartConnect.bind(this),
+      '->': this.directConnect.bind(this),
+      '~>': this.smartConnect.bind(this),
     }
   }
 
@@ -102,6 +104,23 @@ class DiagramLangInterpreter {
   }
 
   /**
+   * Creates a straight link between shapes.
+   *
+   * Syntax:
+   *   -> <from shape> <direction (up/down/left/right)> <to shape> <direction>
+   */
+  directConnect(cmdArray) {
+    const fromShape = this._getShape(cmdArray[0]);
+    const fromDirection = cmdArray[1];
+    const toShape = this._getShape(cmdArray[2]);
+    const toDirection = cmdArray[3];
+    const link = new LinkStraight();
+    link.from = fromShape.getConnectionPoint(fromDirection);
+    link.to = toShape.getConnectionPoint(toDirection);
+    this._addLink(link);
+  }
+
+  /**
    * Defines a variable for following commands.
    * 
    * Syntax:
@@ -127,10 +146,21 @@ class DiagramLangInterpreter {
   }
 
   /**
+   * Sets background color for a shape
+   *
+   * Syntax:
+   *   bgcolor <shape name> <color (single word)>
+   */
+  setBgColor(cmdArray) {
+    const shape = this._getShape(cmdArray[0]);
+    shape.bgColor = cmdArray[1];
+  }
+
+  /**
    * Creates a smart single curved link between shapes.
    *
    * Syntax:
-   *   stack <from shape> <direction (up/down/left/right)> <to shape> <direction>
+   *   ~> <from shape> <direction (up/down/left/right)> <to shape> <direction>
    */
   smartConnect(cmdArray) {
     const fromShape = this._getShape(cmdArray[0]);
