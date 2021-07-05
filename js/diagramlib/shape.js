@@ -26,7 +26,7 @@ class _MultilineTexts extends Shape {
 
     for (const lineOfText of this.lineOfTexts) {
       const textElement = createSvgElement('tspan');
-      textElement.setAttribute('x', this.x + + this.GAP_LEFT);
+      textElement.setAttribute('x', this.x + this.GAP_LEFT);
       textElement.setAttribute('dy', style.textLineSpace);
       textElement.textContent = lineOfText;
       elem.append(textElement);

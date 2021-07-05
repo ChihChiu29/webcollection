@@ -67,8 +67,8 @@ class Shape {
   constructor() {
     this.x = 0;
     this.y = 0;
-    this.width = 10;
-    this.height = 10;
+    this.width = 100;
+    this.height = 30;
     this.bgColor = '#f5f3ed';
     this.zValue = 1;
   }
@@ -128,7 +128,7 @@ class Shape {
 }
 
 class Link {
-  Z_VALUE = 99;
+  Z_VALUE = 99999;
 
   constructor() {
     this.from = { x: 0, y: 0 };
