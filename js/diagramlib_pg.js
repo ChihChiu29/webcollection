@@ -4,6 +4,7 @@ function main() {
 
   let e, e1, e2, e3, e4, e5, c;  // temp varables.
   let s1, s2, s3, s4;  // for saved references.
+  let p, q; // points.
 
   e = new Rect();
   e.x = 10;
@@ -73,10 +74,17 @@ function main() {
   s2 = c;
 
   e = new LinkStraight();
-  e.fromX = s1.getRightMiddle().x;
-  e.fromY = s1.getRightMiddle().y;
-  e.toX = s2.getDownMiddle().x;
-  e.toY = s2.getDownMiddle().y;
+  e.from = s1.getRightMiddle();
+  e.to = s2.getDownMiddle();
+  e.addTo(renderer);
+
+  e = new LinkDoubleCurved();
+  p = s1.getRightMiddle();
+  q = s2.getRightMiddle();
+  e.from = p;
+  e.to = q;
+  e.ctrl = { x: p.x + 100, y: p.x };
+  e.middle = { x: q.x + 100, y: (p.y + q.y) / 2 };
   e.addTo(renderer);
 
   renderer.draw();

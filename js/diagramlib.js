@@ -2,6 +2,13 @@ function createSvgElement(tagName) {
     return document.createElementNS('http://www.w3.org/2000/svg', tagName);
 }
 
+/*
+interface Point {
+    x: float;
+    y: float;
+}
+*/
+
 class Style {
     borderWidth = 2;
     fillOpacity = 0.9;
@@ -110,17 +117,17 @@ class Shape {
 class Link {
     Z_VALUE = 99;
 
-    constructor(fromX, fromY, toX, toY) {
-        this.fromX = fromX;
-        this.fromY = fromY;
-        this.toX = toX;
-        this.toY = toY;
+    constructor() {
+        this.from = { x: 0, y: 0 };
+        this.to = { x: 100, y: 100 };
+        this.hasArrow = true;
     }
 
     addTo(/* SVGRenderer */renderer) {
         for (const elem of this.getElements(renderer.style)) {
             elem.setAttribute('stroke', renderer.style.lineColor);
             elem.setAttribute('stroke-width', renderer.style.linkWidth);
+            elem.setAttribute('fill', 'transparent');
             renderer.addElement(elem, this.Z_VALUE);
         }
     }
@@ -372,15 +379,47 @@ class TitledContainer extends Shape {
     }
 }
 
+/**
+ * A straight link.
+ */
 class LinkStraight extends Link {
     // @Implement
     getElements(/* Style */style) {
         const elem = createSvgElement('line');
-        elem.setAttribute('x1', this.fromX);
-        elem.setAttribute('y1', this.fromY);
-        elem.setAttribute('x2', this.toX);
-        elem.setAttribute('y2', this.toY);
-        elem.setAttribute('marker-end', 'url(#endarrow)');
+        elem.setAttribute('x1', this.from.x);
+        elem.setAttribute('y1', this.from.y);
+        elem.setAttribute('x2', this.to.x);
+        elem.setAttribute('y2', this.to.y);
+        if (this.hasArrow) {
+            elem.setAttribute('marker-end', 'url(#endarrow)');
+        }
+        return [elem];
+    }
+}
+
+class LinkDoubleCurved extends Link {
+    constructor() {
+        super();
+
+        // See: https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+        this.middle = undefined;
+        this.ctrl = undefined;
+    }
+
+    // @Implement
+    getElements(/* Style */style) {
+        if (!this.middle) {
+            this.middle = this.from;
+        }
+        if (!this.ctrl) {
+            this.ctrl = this.from;
+        }
+
+        const elem = createSvgElement('path');
+        elem.setAttribute('d', `M ${this.from.x} ${this.from.y} Q ${this.ctrl.x} ${this.ctrl.y}, ${this.middle.x} ${this.middle.y} T ${this.to.x} ${this.to.y}`);
+        if (this.hasArrow) {
+            elem.setAttribute('marker-end', 'url(#endarrow)');
+        }
         return [elem];
     }
 }
