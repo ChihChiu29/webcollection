@@ -1,24 +1,10 @@
 <body>
-  <div id="canvas" style="border: solid"><svg viewBox="0 0 640 480">
-      <defs>
-        <marker id="startarrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-          <polygon points="10 0, 10 7, 0 3.5" fill="#545961"></polygon>
-        </marker>
-        <marker id="endarrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"
-          markerUnits="strokeWidth">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#545961"></polygon>
-        </marker>
-      </defs>
-      <rect x="30" y="50" width="250" height="100" rx="5" ry="5" stroke="#545961" stroke-width="2" fill="red"
-        fill-opacity="0.2"></rect><text x="30" y="50" font-size="20">
-        <tspan x="30" dy="1.2em" text-anchor="start">hello</tspan>
-        <tspan x="30" dy="1.2em">world</tspan>
-      </text>
-      <g x="0" y="250" width="200" height="40">
-        <rect x="0" y="250" width="200" height="40" rx="5" ry="5" stroke="#545961" stroke-width="2" fill="yellow"
-          fill-opacity="0.2"></rect>
-        <text x="50%" y="50%" font-size="20" dominant-baseline="middle" text-anchor="middle">hello world</text>
-      </g>
-    </svg>
-  </div>
+  <svg viewBox="0 0 640 480">
+    <!-- <path d="M 10 80 C 40 10, 65 10, 95 80 S 150 150, 180 80" stroke="black" fill="transparent" /> -->
+    <path d="M 10 80 C 10 10, 95 10, 95 80 S 180 150, 180 80" stroke="black" fill="transparent" />
+    <path d="
+        M 80 200
+        C 80 250, 90 300, 140 300
+        S 210 410, 200 400" marker-end="url(#endarrow)" stroke="#545961" stroke-width="2" fill="transparent"></path>
+  </svg>
 </body>

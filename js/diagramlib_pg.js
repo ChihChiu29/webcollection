@@ -1,6 +1,7 @@
 function main() {
   const style = new Style();
   const renderer = new SVGRenderer(document.querySelector('#canvas'), style);
+  renderer.height = 1000;
 
   let e, e1, e2, e3, e4, e5, c;  // temp varables.
   let s1, s2, s3, s4;  // for saved references.
@@ -49,8 +50,8 @@ function main() {
   s1 = c;
 
   c = new TitledContainer();
-  c.x = 10;
-  c.y = 300;
+  c.x = 200;
+  c.y = 400;
   c.width = 200;
   c.height = 120;
   c.title = 'Tile layout';
@@ -79,12 +80,27 @@ function main() {
   e.addTo(renderer);
 
   e = new LinkDoubleCurved();
-  p = s1.getRightMiddle();
+  p = s1.getDownMiddle();
   q = s2.getRightMiddle();
   e.from = p;
   e.to = q;
-  e.ctrl = { x: p.x + 100, y: p.x };
-  e.middle = { x: q.x + 100, y: (p.y + q.y) / 2 };
+  e.ctrl1 = { x: p.x, y: p.y + 50 };
+  e.middle = { x: q.x, y: (p.y + q.y) / 2 + 30 };
+  e.ctrl2 = { x: p.x, y: e.middle.y };
+  e.ctrl3 = { x: q.x + 50, y: q.y - 30 };
+  e.addTo(renderer);
+
+  // e = new LinkSingleCurved();
+  // p = s1.getDownMiddle();
+  // q = s2.getUpMiddle();
+  // e.from = p;
+  // e.to = q;
+  // e.ctrl1 = { x: p.x, y: q.y };
+  // e.ctrl2 = { x: p.x, y: q.y };
+  // e.addTo(renderer);
+
+  e = new LinkSmartSingleCurved();
+  e.setParamsFromShapes(s1, 'right', s2, 'up');
   e.addTo(renderer);
 
   renderer.draw();

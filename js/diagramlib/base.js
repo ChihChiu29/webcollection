@@ -112,6 +112,19 @@ class Shape {
   getRightMiddle() {
     return { x: this.x + this.width, y: this.getCenter().y };
   }
+
+  getConnectionPoint(/*string*/direction) {
+    if (direction === 'up') {
+      return this.getUpMiddle();
+    } else if (direction === 'down') {
+      return this.getDownMiddle();
+    } else if (direction === 'left') {
+      return this.getLeftMiddle();
+    } else if (direction === 'right') {
+      return this.getRightMiddle();
+    }
+    throw new Error('direction not implemented');
+  }
 }
 
 class Link {
