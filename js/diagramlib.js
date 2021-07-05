@@ -185,7 +185,7 @@ class _CenteredText extends Shape {
 }
 
 /**
- * A rect with border etc., no text.
+ * A raw rect with border etc., no text.
  */
 class _Rect extends Shape {
     CORNER_RADIUS = 5;
@@ -208,6 +208,9 @@ class _Rect extends Shape {
     }
 }
 
+/**
+ * A rect shape with some text support.
+ */
 class Rect extends Shape {
     constructor() {
         super();
@@ -251,7 +254,7 @@ class StackContainer extends Shape {
         // Shifts in x and y for each stacked shape.
         this.shiftX = 10;  // half of shiftY is a good choice.
         this.shiftY = 25;  // style.textFontSize + 10 is a good choice.
-        // shapes to stack, background to foreground. All shapes will be set to the container's size.
+        // Shapes to tile, background to foreground. All shapes will be set to the container's size.
         this.shapes = [];
     }
 
@@ -261,18 +264,102 @@ class StackContainer extends Shape {
             return [];
         }
 
+        const numOfShapes = this.shapes.length;
+        const shapeWidth = this.width - this.shiftX * (numOfShapes - 1);
+        const shapeHeight = this.height - this.shiftY * (numOfShapes - 1);
+
         const elements = [];
         let accumulatedShiftX = 0;
         let accumulatedShiftY = 0;
         for (const shape of this.shapes) {
             shape.x = this.x + accumulatedShiftX;
             shape.y = this.y + accumulatedShiftY;
-            shape.width = this.width;
-            shape.height = this.height;
+            shape.width = shapeWidth;
+            shape.height = shapeHeight;
             elements.push(...shape.getElements(style));
             accumulatedShiftX += this.shiftX;
             accumulatedShiftY += this.shiftY;
         }
+
+        return elements;
+    }
+}
+
+/**
+ * Show multiple shapes in tile layout.
+ */
+class TileContainer extends Shape {
+    constructor() {
+        super();
+
+        // How many shapes to put per row. Affects how shapes are resized.
+        this.numOfShapesPerRow = 3;
+        // Gap size between shapes.
+        this.gapX = 10;
+        this.gapY = 10;
+        // Shapes to tile. All shapes will be reshaped according to the container's size.
+        this.shapes = [];
+    }
+
+    // @Override
+    getElements(/* Style */style) {
+        if (!this.shapes.length) {
+            return [];
+        }
+
+        const numOfRows = Math.ceil(this.shapes.length / this.numOfShapesPerRow);
+        const shapeWidth = (this.width - (this.numOfShapesPerRow + 1) * this.gapX) / this.numOfShapesPerRow;
+        const shapeHeight = (this.height - (numOfRows + 1) * this.gapY) / numOfRows;
+
+        const elements = [];
+        for (const idx in this.shapes) {
+            const shape = this.shapes[idx];
+
+            const colIdx = idx % this.numOfShapesPerRow;
+            const rowIdx = Math.floor(idx / this.numOfShapesPerRow);
+            shape.x = this.x + this.gapX + (this.gapX + shapeWidth) * colIdx;
+            shape.y = this.y + this.gapY + (this.gapY + shapeHeight) * rowIdx;
+            shape.width = shapeWidth;
+            shape.height = shapeHeight;
+            elements.push(...shape.getElements(style));
+        }
+
+        return elements;
+    }
+}
+
+/**
+ * A container providing a title for a child shape.
+ */
+class TitledContainer extends Shape {
+    constructor() {
+        super();
+
+        this.title = '';  // Title text.
+        this.childGapX = 5;  // Child gap in x, affects both left and right of the child.
+        this.childGapY = 5;  // Child gap in x, affects both top and bottom of the child.
+        this.childShiftY = 20; // Child shift in y, affects only top. `style.textFontSize + 10` is a good choice.
+        this.childShape = undefined;  // Child shape. Will be resized when rendering.
+    }
+
+    // @Implement
+    getElements(/* Style */style) {
+        if (!this.childShape) {
+            return [];
+        }
+
+        const elements = [];
+
+        const rect = new Rect();
+        rect.copyProperties(this);
+        rect.texts = [this.title];
+        elements.push(...rect.getElements(style));
+
+        this.childShape.x = this.x + this.childGapX;
+        this.childShape.y = this.y + this.childGapY + this.childShiftY;
+        this.childShape.width = this.width - this.childGapX * 2;
+        this.childShape.height = this.height - this.childGapY * 2 - this.childShiftY;
+        elements.push(...this.childShape.getElements(style));
 
         return elements;
     }
