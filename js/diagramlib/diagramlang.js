@@ -21,6 +21,7 @@ class DiagramLangInterpreter {
       'move': this.move.bind(this),
       'rect': this.createRect.bind(this),
       'stack': this.stackShapes.bind(this),
+      'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
     }
@@ -146,6 +147,38 @@ class DiagramLangInterpreter {
     stackContainer.shapes = shapes;
     titledContainer.title = title;
     titledContainer.childShape = stackContainer;
+
+    this._setShape(name, titledContainer);
+  }
+
+  /**
+   * Tile shapes to a new shape.
+   *
+   * Syntax:
+   *   tile <name of the stack shape> <number of shapes per row> <list of shapes to stack> with <title text>
+   */
+  tileShapes(cmdArray) {
+    const name = cmdArray[0];
+    const numOfShapesPerRow = parseInt(cmdArray[1]);
+    cmdArray = cmdArray.splice(2);
+    const withKeywordIndex = cmdArray.indexOf('with');
+    if (withKeywordIndex < 0) {
+      throw new Error('tile shapes "with" keyword not found');
+    }
+    const shapeNames = cmdArray.slice(0, withKeywordIndex);
+    const title = cmdArray.slice(withKeywordIndex + 1).join(' ');
+
+    const shapes = [];
+    for (const shapeName of shapeNames) {
+      shapes.push(this._getShape(shapeName));
+      this._removeShape(shapeName);
+    }
+    const titledContainer = new TitledContainer();
+    const tileContainer = new TileContainer();
+    tileContainer.numOfShapesPerRow = numOfShapesPerRow;
+    tileContainer.shapes = shapes;
+    titledContainer.title = title;
+    titledContainer.childShape = tileContainer;
 
     this._setShape(name, titledContainer);
   }
