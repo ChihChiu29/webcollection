@@ -2,7 +2,8 @@ function main() {
   const style = new Style();
   const renderer = new SVGRenderer(document.querySelector('#canvas'), style);
 
-  let e, e1, e2, e3, e4, e5, c;
+  let e, e1, e2, e3, e4, e5, c;  // temp varables.
+  let s1, s2, s3, s4;  // for saved references.
 
   e = new Rect();
   e.x = 10;
@@ -44,6 +45,7 @@ function main() {
   e.shapes = [e1, e2, e3, e4];
   c.childShape = e;
   c.addTo(renderer);
+  s1 = c;
 
   c = new TitledContainer();
   c.x = 10;
@@ -68,6 +70,14 @@ function main() {
   e.shapes = [e1, e2, e3, e4];
   c.childShape = e;
   c.addTo(renderer);
+  s2 = c;
+
+  e = new LinkStraight();
+  e.fromX = s1.getRightMiddle().x;
+  e.fromY = s1.getRightMiddle().y;
+  e.toX = s2.getDownMiddle().x;
+  e.toY = s2.getDownMiddle().y;
+  e.addTo(renderer);
 
   renderer.draw();
 }

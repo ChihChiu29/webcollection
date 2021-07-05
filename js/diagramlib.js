@@ -42,11 +42,8 @@ class SVGRenderer {
 
         const defsElement = createSvgElement('defs');
         defsElement.innerHTML = `
-            <marker id="startarrow" markerWidth="10" markerHeight="7" refX ="10" refY ="3.5" orient="auto">
-                <polygon points="10 0, 10 7, 0 3.5" fill="${this.style.lineColor}" />
-            </marker>
-            <marker id="endarrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto" markerUnits="strokeWidth">
-                <polygon points="0 0, 10 3.5, 0 7" fill="${this.style.lineColor}" />
+            <marker id="endarrow" markerWidth="10" markerHeight="5" refX="10" refY="2.5" orient="auto" markerUnits="strokeWidth">
+                <polygon points="0 0, 10 2.5, 0 5" fill="${this.style.lineColor}" />
             </marker>
         `;
         svgElement.append(defsElement);
@@ -92,6 +89,22 @@ class Shape {
     getCenter() {
         return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
     }
+
+    getUpMiddle() {
+        return { x: this.getCenter().x, y: this.y };
+    }
+
+    getDownMiddle() {
+        return { x: this.getCenter().x, y: this.y + this.height };
+    }
+
+    getLeftMiddle() {
+        return { x: this.x, y: this.getCenter().y };
+    }
+
+    getRightMiddle() {
+        return { x: this.x + this.width, y: this.getCenter().y };
+    }
 }
 
 class Link {
@@ -106,21 +119,15 @@ class Link {
 
     addTo(/* SVGRenderer */renderer) {
         for (const elem of this.getElements(renderer.style)) {
+            elem.setAttribute('stroke', renderer.style.lineColor);
+            elem.setAttribute('stroke-width', renderer.style.linkWidth);
             renderer.addElement(elem, this.Z_VALUE);
         }
     }
 
+    // @Abstract
     getElements(/* Style */style) {
-        const elem = createSvgElement('line');
-        elem.setAttribute('x1', this.fromX);
-        elem.setAttribute('y1', this.fromY);
-        elem.setAttribute('x2', this.toX);
-        elem.setAttribute('y2', this.toY);
-        elem.setAttribute('marker-end', 'url(#endarrow)');
-
-        elem.setAttribute('stroke', style.lineColor);
-        elem.setAttribute('stroke-width', style.linkWidth);
-        return [elem];
+        throw new Error('not implemented');
     }
 }
 
@@ -362,5 +369,18 @@ class TitledContainer extends Shape {
         elements.push(...this.childShape.getElements(style));
 
         return elements;
+    }
+}
+
+class LinkStraight extends Link {
+    // @Implement
+    getElements(/* Style */style) {
+        const elem = createSvgElement('line');
+        elem.setAttribute('x1', this.fromX);
+        elem.setAttribute('y1', this.fromY);
+        elem.setAttribute('x2', this.toX);
+        elem.setAttribute('y2', this.toY);
+        elem.setAttribute('marker-end', 'url(#endarrow)');
+        return [elem];
     }
 }
