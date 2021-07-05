@@ -4,25 +4,25 @@ function createSvgElement(tagName) {
 
 class Style {
     borderWidth = 2;
-    fillOpacity = 0.2;
+    fillOpacity = 0.9;
     lineColor = '#545961';
     linkWidth = 2;
+    textFontSize = 15;
+    textLineSpace = '1.2em';
 }
 
 /**
  * Helper to draw an SVG. Create one per draw action.
  */
 class SVGRenderer {
-    constructor(hostElement,
-        left = 0, top = 0, width = 640, height = 480,
-        style = new Style(),
-    ) {
+    constructor(hostElement, style = new Style()) {
         this.hostElement = hostElement;
-        this.left = left;
-        this.top = top;
-        this.width = width;
-        this.height = height;
         this.style = style;
+
+        this.left = 0;
+        this.top = 0;
+        this.width = 640;
+        this.height = 480;
 
         this.elements = [];
     }
@@ -66,23 +66,37 @@ class Shape {
         this.width = 10;
         this.height = 10;
         this.bgColor = '#f5f3ed';
+        this.zValue = 1;
+    }
+
+    copyProperties(/* Shape */other) {
+        this.x = other.x;
+        this.y = other.y;
+        this.width = other.width;
+        this.height = other.height;
+        this.bgColor = other.bgColor;
+        this.zValue = other.zValue;
     }
 
     addTo(renderer) {
-        const elem = this.getElement();
-        elem.setAttribute('stroke', renderer.style.lineColor);
-        elem.setAttribute('stroke-width', renderer.style.borderWidth);
-        elem.setAttribute('fill', this.bgColor);
-        elem.setAttribute('fill-opacity', renderer.style.fillOpacity);
-        renderer.addElement(elem, this.Z_VALUE);
+        for (const elem of this.getElements(renderer.style)) {
+            renderer.addElement(elem, this.zValue);
+        }
     }
 
-    getElement() {
+    // @Abstract
+    getElements(/* Style */style) {
         throw new Error('not implemented');
+    }
+
+    getCenter() {
+        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
     }
 }
 
 class Link {
+    Z_VALUE = 99;
+
     constructor(fromX, fromY, toX, toY) {
         this.fromX = fromX;
         this.fromY = fromY;
@@ -90,39 +104,176 @@ class Link {
         this.toY = toY;
     }
 
-    Z_VALUE = 99;
-
     addTo(/* SVGRenderer */renderer) {
-        const elem = this.getElement();
-        elem.setAttribute('stroke', renderer.style.lineColor);
-        elem.setAttribute('stroke-width', renderer.style.linkWidth);
-        renderer.addElement(elem, this.Z_VALUE);
+        for (const elem of this.getElements(renderer.style)) {
+            renderer.addElement(elem, this.Z_VALUE);
+        }
     }
 
-    getElement() {
+    getElements(/* Style */style) {
         const elem = createSvgElement('line');
         elem.setAttribute('x1', this.fromX);
         elem.setAttribute('y1', this.fromY);
         elem.setAttribute('x2', this.toX);
         elem.setAttribute('y2', this.toY);
         elem.setAttribute('marker-end', 'url(#endarrow)');
-        return elem;
+
+        elem.setAttribute('stroke', style.lineColor);
+        elem.setAttribute('stroke-width', style.linkWidth);
+        return [elem];
+    }
+}
+
+/**
+ * Multiline texts, parent is optional.
+ */
+class _MultilineTexts extends Shape {
+    GAP_LEFT = 5;  // space to the left of the text.
+
+    constructor(lineOfTexts) {
+        super();
+        this.lineOfTexts = lineOfTexts;
+    }
+
+    // @Override
+    copyProperties(/* Shape */other) {
+        this.x = other.x;
+        this.y = other.y;
+        this.bgColor = other.bgColor;
+        this.zValue = other.zValue;
+    }
+
+    // @Implement
+    getElements(/* Style */style) {
+        const elem = createSvgElement('text');
+        elem.setAttribute('x', this.x);
+        elem.setAttribute('y', this.y);
+        elem.setAttribute('font-size', style.textFontSize);
+
+        for (const lineOfText of this.lineOfTexts) {
+            const textElement = createSvgElement('tspan');
+            textElement.setAttribute('x', this.x + + this.GAP_LEFT);
+            textElement.setAttribute('dy', style.textLineSpace);
+            textElement.textContent = lineOfText;
+            elem.append(textElement);
+        }
+        return [elem];
+    }
+}
+
+/**
+ * A single line of text centered in a (mandatory) parent.
+ */
+class _CenteredText extends Shape {
+    constructor(singleLineOfText) {
+        super();
+        this.text = singleLineOfText;
+    }
+
+    // @Implement
+    getElements(/* Style */style) {
+        const elem = createSvgElement('text');
+        const center = this.getCenter();
+        elem.setAttribute('x', center.x);
+        elem.setAttribute('y', center.y);
+        elem.setAttribute('font-size', style.textFontSize);
+        elem.setAttribute('dominant-baseline', 'middle');
+        elem.setAttribute('text-anchor', 'middle');
+        elem.textContent = this.text;
+        return [elem];
+    }
+}
+
+/**
+ * A rect with border etc., no text.
+ */
+class _Rect extends Shape {
+    CORNER_RADIUS = 5;
+
+    // @Implement
+    getElements(/* Style */style) {
+        const elem = createSvgElement('rect');
+        elem.setAttribute('x', this.x);
+        elem.setAttribute('y', this.y);
+        elem.setAttribute('width', this.width);
+        elem.setAttribute('height', this.height);
+        elem.setAttribute('rx', this.CORNER_RADIUS);
+        elem.setAttribute('ry', this.CORNER_RADIUS);
+
+        elem.setAttribute('stroke', style.lineColor);
+        elem.setAttribute('stroke-width', style.borderWidth);
+        elem.setAttribute('fill', this.bgColor);
+        elem.setAttribute('fill-opacity', style.fillOpacity);
+        return [elem];
     }
 }
 
 class Rect extends Shape {
     constructor() {
         super();
+
+        // You should only use one of the following.
+        this.texts = [];  // multiline texts starting from top-left corner.
+        this.centeredText = '';  // centered single line of text.
     }
 
-    getElement() {
-        const elem = createSvgElement('rect');
-        elem.setAttribute('x', this.x);
-        elem.setAttribute('y', this.y);
-        elem.setAttribute('width', this.width);
-        elem.setAttribute('height', this.height);
-        elem.setAttribute('rx', 5);
-        elem.setAttribute('ry', 5);
-        return elem;
+    // @Implement
+    getElements(/* Style */style) {
+        const elements = [];
+
+        const rect = new _Rect();
+        rect.copyProperties(this);
+        elements.push(...rect.getElements(style));
+
+        if (this.texts.length) {
+            const multilineTexts = new _MultilineTexts(this.texts);
+            multilineTexts.copyProperties(this);
+            elements.push(...multilineTexts.getElements(style));
+        }
+
+        if (this.centeredText) {
+            const centeredText = new _CenteredText(this.centeredText);
+            centeredText.copyProperties(this);
+            elements.push(...centeredText.getElements(style));
+        }
+
+        return elements;
+    }
+}
+
+/**
+ * Stack multiple shapes by providing a x and y shift for background shapes.
+ */
+class StackContainer extends Shape {
+    constructor() {
+        super();
+
+        // Shifts in x and y for each stacked shape.
+        this.shiftX = 10;  // half of shiftY is a good choice.
+        this.shiftY = 25;  // style.textFontSize + 10 is a good choice.
+        // shapes to stack, background to foreground. All shapes will be set to the container's size.
+        this.shapes = [];
+    }
+
+    // @Override
+    getElements(/* Style */style) {
+        if (!this.shapes.length) {
+            return [];
+        }
+
+        const elements = [];
+        let accumulatedShiftX = 0;
+        let accumulatedShiftY = 0;
+        for (const shape of this.shapes) {
+            shape.x = this.x + accumulatedShiftX;
+            shape.y = this.y + accumulatedShiftY;
+            shape.width = this.width;
+            shape.height = this.height;
+            elements.push(...shape.getElements(style));
+            accumulatedShiftX += this.shiftX;
+            accumulatedShiftY += this.shiftY;
+        }
+
+        return elements;
     }
 }
