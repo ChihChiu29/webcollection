@@ -16,9 +16,20 @@ function generateNodes() {
 function generateLinks() {
   const links = [];
   for (let i = 0; i < NUM_LINKS; i++) {
-
+    links.push({
+      source: randomInt(0, NUM_NODES),
+      target: randomInt(0, NUM_NODES),
+      value: randomInt(1, 10),
+    });
   }
+  return links;
 }
 
-var sankey = d3.sankey();
+var sankey = d3.sankey()
+  .nodeWidth(20)
+  .nodePadding(200)
+  .size([460, 460])
+  .nodes(data.nodes)
+  .links(data.links)
+  .layout(200);
 
