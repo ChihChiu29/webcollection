@@ -25,11 +25,17 @@ function generateLinks() {
   return links;
 }
 
-var sankey = d3.sankey()
-  .nodeWidth(20)
-  .nodePadding(200)
-  .size([460, 460])
-  .nodes(data.nodes)
-  .links(data.links)
-  .layout(200);
+function onload() {
+  const data = {
+    nodes: generateNodes(),
+    links: generateLinks(),
+  };
 
+  var sankey = d3.sankey()
+    .nodeWidth(20)
+    .nodePadding(200)
+    .size([460, 460])
+    .nodes(data.nodes)
+    .links(data.links)
+    .layout(200);
+}
